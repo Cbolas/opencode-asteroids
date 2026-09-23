@@ -45,3 +45,4 @@ Em seguida, acesse `http://localhost:3000`.
 * Asteroides se dividem em fragmentos menores ao serem destruídos
 * Partículas de explosão ao destruir asteroides
 * Power-up de velocidade: liberado aleatoriamente ao destruir asteroides; ao coletá-lo, a nave se move duas vezes mais rápido durante 5 segundos
+* Estrela cadente: asteroide especial amarelo, muito rápido, que entra periodicamente pelas bordas da tela e desaparece sozinho após alguns segundos; ao atingi-la, divide-se em duas estrelas menores e ainda mais rápidas — não vale pontos, é só perigo
