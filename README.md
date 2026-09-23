@@ -1,45 +1,46 @@
 # Asteroids
 
-Clon del clásico arcade **Asteroids** implementado en canvas HTML5 puro, sin dependencias ni bundler.
+Clone do clássico de arcade **Asteroids** implementado em canvas HTML5 puro, sem dependências ou bundler.
 
-## Descripción
+## Descrição
 
-Nave espacial en un campo de asteroides con envolvimiento de bordes (el espacio es toroidal). Destruye asteroides para sumar puntos: los grandes se parten en medianos, los medianos en pequeños. Incluye power-ups especiales y tipos de asteroides únicos como la estrella fugaz.
+Nave espacial em um campo de asteroides com transição contínua nas bordas (o espaço é toroidal). Destrua asteroides para somar pontos: os grandes se dividem em médios, os médios em pequenos. Inclui power-ups especiais e tipos únicos de asteroides, como a estrela cadente.
 
-## Tecnologías
+## Tecnologias
 
-- **HTML5 Canvas** — renderizado 2D
-- **JavaScript (ES6+)** — lógica del juego en un solo archivo `game.js`
-- Sin frameworks, sin bundler, sin dependencias
+* **HTML5 Canvas** — renderização 2D
+* **JavaScript (ES6+)** — lógica do jogo em um único arquivo `game.js`
+* Sem frameworks, sem bundler, sem dependências
 
-## Cómo correr
+## Como executar
 
-Abre `index.html` directamente en el navegador (doble clic), o usa un servidor local:
+Abra o `index.html` diretamente no navegador (clique duplo), ou use um servidor local:
 
 ```bash
 npx serve .
+
 ```
 
-Luego visita `http://localhost:3000`.
+Em seguida, acesse `http://localhost:3000`.
 
 ## Controles
 
-| Tecla     | Acción     |
-| --------- | ---------- |
-| `←` `→`   | Rotar nave |
-| `↑`       | Propulsar  |
-| `Espacio` | Disparar   |
+| Tecla | Ação |
+| --- | --- |
+| `←` `→` | Girar nave |
+| `↑` | Propulsão |
+| `Espaço` | Atirar |
 
-## Puntuación
+## Pontuação
 
-| Asteroide | Puntos |
-| --------- | ------ |
-| Grande    | 20     |
-| Mediano   | 50     |
-| Pequeño   | 100    |
+| Asteroide | Pontos |
+| --- | --- |
+| Grande | 20 |
+| Médio | 50 |
+| Pequeno | 100 |
 
-## Características
+## Recursos
 
-- 3 vidas con invencibilidad temporal al reaparecer (parpadeo)
-- Asteroides se parten en fragmentos más pequeños al ser destruidos
-- Partículas de explosión al destruir asteroides
+* 3 vidas com invencibilidade temporária ao renascer (piscando)
+* Asteroides se dividem em fragmentos menores ao serem destruídos
+* Partículas de explosão ao destruir asteroides
