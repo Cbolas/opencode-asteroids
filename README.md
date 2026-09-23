@@ -44,3 +44,4 @@ Em seguida, acesse `http://localhost:3000`.
 * 3 vidas com invencibilidade temporária ao renascer (piscando)
 * Asteroides se dividem em fragmentos menores ao serem destruídos
 * Partículas de explosão ao destruir asteroides
+* Power-up de velocidade: liberado aleatoriamente ao destruir asteroides; ao coletá-lo, a nave se move duas vezes mais rápido durante 5 segundos
