@@ -200,6 +200,69 @@ class ShootingStar extends Asteroid {
   }
 }
 
+// ── Skins de la nave ──────────────────────────────────────────────────────────
+// Cada skin define la silueta (verts, morro hacia +x), el color del trazo,
+// el anclaje de la llama (flameX/flameW) y la distancia del morro donde
+// nacen las balas (nose).
+const SKINS = [
+  {
+    name: 'CLÁSICA',
+    stroke: '#fff',
+    flame: 'rgba(255, 130, 0, 0.85)',
+    nose: 21,
+    flameX: -8,
+    flameW: 4,
+    verts: [[20, 0], [-12, -9], [-7, 0], [-12, 9]],
+  },
+  {
+    name: 'DARDO',
+    stroke: '#0f0',
+    flame: 'rgba(80, 255, 120, 0.85)',
+    nose: 25,
+    flameX: -5,
+    flameW: 3,
+    verts: [[24, 0], [-10, -5], [-4, 0], [-10, 5]],
+  },
+  {
+    name: 'CAZA',
+    stroke: '#f4f',
+    flame: 'rgba(255, 100, 255, 0.85)',
+    nose: 19,
+    flameX: -8,
+    flameW: 3,
+    verts: [[18, 0], [0, -5], [-3, -13], [-11, -6], [-6, 0], [-11, 6], [-3, 13], [0, 5]],
+  },
+  {
+    name: 'CÁPSULA',
+    stroke: '#ff5252',
+    flame: 'rgba(255, 90, 70, 0.9)',
+    nose: 13,
+    flameX: -11,
+    flameW: 5,
+    verts: [[12, 0], [5, -8], [-8, -8], [-12, 0], [-8, 8], [5, 8]],
+  },
+];
+
+const SKIN_KEY = 'asteroids.skin';
+
+function loadSkin() {
+  try {
+    const i = parseInt(localStorage.getItem(SKIN_KEY), 10);
+    return Number.isInteger(i) && i >= 0 && i < SKINS.length ? i : 0;
+  } catch (e) {
+    return 0;  // almacenamiento no disponible
+  }
+}
+
+function saveSkin() {
+  try {
+    localStorage.setItem(SKIN_KEY, String(skinIndex));
+  } catch (e) { /* sin persistencia, la elección dura lo que dure la sesión */ }
+}
+
+let skinIndex = loadSkin();
+let skinToast  = 0;  // segundos restantes del aviso "SKIN: …" en el HUD
+
 // ── Ship ──────────────────────────────────────────────────────────────────────
 class Ship {
   constructor() { this.reset(); }
@@ -247,9 +310,9 @@ class Ship {
   tryShoot() {
     if (this.shootCooldown > 0 || this.dead) return [];
     this.shootCooldown = 0.2;
-    const NOSE = 21;
-    const ox = this.x + Math.cos(this.angle) * NOSE;
-    const oy = this.y + Math.sin(this.angle) * NOSE;
+    const skin = SKINS[skinIndex];
+    const ox = this.x + Math.cos(this.angle) * skin.nose;
+    const oy = this.y + Math.sin(this.angle) * skin.nose;
     return [new Bullet(ox, oy, this.angle)];
   }
 
@@ -261,28 +324,28 @@ class Ship {
     ctx.save();
     ctx.translate(this.x, this.y);
     ctx.rotate(this.angle);
-    ctx.strokeStyle = '#fff';
+    const skin = SKINS[skinIndex];
+    ctx.strokeStyle = skin.stroke;
     ctx.lineWidth   = 1.5;
     ctx.lineJoin    = 'round';
 
-    // Silueta clásica: triángulo con muesca trasera
+    // Silueta de la skin seleccionada
     ctx.beginPath();
-    ctx.moveTo( 20,  0);   // nariz
-    ctx.lineTo(-12, -9);   // ala izquierda
-    ctx.lineTo( -7,  0);   // muesca trasera
-    ctx.lineTo(-12,  9);   // ala derecha
+    ctx.moveTo(skin.verts[0][0], skin.verts[0][1]);
+    for (let i = 1; i < skin.verts.length; i++)
+      ctx.lineTo(skin.verts[i][0], skin.verts[i][1]);
     ctx.closePath();
     ctx.stroke();
 
     // Llama del propulsor
     if (this.thrusting && Math.random() > 0.35) {
       ctx.beginPath();
-      ctx.moveTo(-8, -4);
-      ctx.lineTo(-8 - rand(6, 14), 0);
-      ctx.lineTo(-8,  4);
+      ctx.moveTo(skin.flameX, -skin.flameW);
+      ctx.lineTo(skin.flameX - rand(6, 14), 0);
+      ctx.lineTo(skin.flameX,  skin.flameW);
       // Llama cian mientras dura el power-up de velocidad
       ctx.strokeStyle = this.speedBoost > 0 ? 'rgba(0, 255, 255, 0.9)'
-                                            : 'rgba(255, 130, 0, 0.85)';
+                                            : skin.flame;
       ctx.stroke();
     }
 
@@ -446,6 +509,14 @@ function killShip() {
 
 // ── Update ────────────────────────────────────────────────────────────────────
 function update(dt) {
+  // Cambio de skin (tecla C), disponible en cualquier estado
+  if (skinToast > 0) skinToast -= dt;
+  if (pressed('KeyC')) {
+    skinIndex = (skinIndex + 1) % SKINS.length;
+    saveSkin();
+    skinToast = 2;
+  }
+
   if (state === 'gameover') {
     if (pressed('Space')) initGame();
     particles.forEach(p => p.update(dt));
@@ -530,17 +601,19 @@ function update(dt) {
 
 // ── Draw ──────────────────────────────────────────────────────────────────────
 function drawLifeIcon(x, y) {
+  // Miniatura de la skin activa (misma silueta, a escala 0.45)
+  const skin = SKINS[skinIndex];
+  const S = 0.45;
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(-Math.PI / 2);
-  ctx.strokeStyle = '#fff';
+  ctx.strokeStyle = skin.stroke;
   ctx.lineWidth   = 1.2;
   ctx.lineJoin    = 'round';
   ctx.beginPath();
-  ctx.moveTo( 9,  0);
-  ctx.lineTo(-6, -5);
-  ctx.lineTo(-3,  0);
-  ctx.lineTo(-6,  5);
+  ctx.moveTo(skin.verts[0][0] * S, skin.verts[0][1] * S);
+  for (let i = 1; i < skin.verts.length; i++)
+    ctx.lineTo(skin.verts[i][0] * S, skin.verts[i][1] * S);
   ctx.closePath();
   ctx.stroke();
   ctx.restore();
@@ -564,6 +637,17 @@ function drawHUD() {
 
   for (let i = 0; i < lives; i++)
     drawLifeIcon(W - 16 - i * 22, 18);
+
+  // Aviso temporal de la skin activa tras cambiarla (tecla C)
+  if (skinToast > 0) {
+    ctx.save();
+    ctx.globalAlpha = Math.min(skinToast / 2, 1);
+    ctx.fillStyle = SKINS[skinIndex].stroke;
+    ctx.font      = '15px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(`SKIN: ${SKINS[skinIndex].name}`, W / 2, H - 18);
+    ctx.restore();
+  }
 
 }
 
