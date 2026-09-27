@@ -30,6 +30,7 @@ Em seguida, acesse `http://localhost:3000`.
 | `←` `→` | Girar nave |
 | `↑` | Propulsão |
 | `Espaço` | Atirar |
+| `C` | Trocar a skin da nave |
 
 ## Pontuação
 
@@ -42,6 +43,7 @@ Em seguida, acesse `http://localhost:3000`.
 ## Recursos
 
 * 3 vidas com invencibilidade temporária ao renascer (piscando)
+* 4 skins de nave (silhueta e cor próprias, com chama do propulsor e ícones de vidas combinando): Clássica, Dardo, Caça e Cápsula — troque com a tecla `C`; a escolha fica salva no navegador (localStorage)
 * Asteroides se dividem em fragmentos menores ao serem destruídos
 * Partículas de explosão ao destruir asteroides
 * Power-up de velocidade: liberado aleatoriamente ao destruir asteroides; ao coletá-lo, a nave se move duas vezes mais rápido durante 5 segundos
