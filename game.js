@@ -277,7 +277,7 @@ class Ship {
     this.thrusting     = false;
     this.invincible    = 3;
     this.shootCooldown = 0;
-    this.speedBoost    = 0;
+    this.tripleShot    = 0;
     this.dead          = false;
   }
 
@@ -285,11 +285,10 @@ class Ship {
     if (this.dead) return;
     if (this.invincible    > 0) this.invincible    -= dt;
     if (this.shootCooldown > 0) this.shootCooldown -= dt;
-    if (this.speedBoost    > 0) this.speedBoost    -= dt;
+    if (this.tripleShot    > 0) this.tripleShot    -= dt;
 
-    const ROT   = 3.5;   // rad/s
-    // El power-up de velocidad duplica la propulsión (y la velocidad máxima)
-    const THRUST = this.speedBoost > 0 ? 260 * SPEED_MULT : 260;  // px/s²
+    const ROT    = 3.5;   // rad/s
+    const THRUST = 260;   // px/s²
     const DRAG   = 0.987;
 
     if (keys['ArrowLeft'])  this.angle -= ROT * dt;
@@ -313,6 +312,16 @@ class Ship {
     const skin = SKINS[skinIndex];
     const ox = this.x + Math.cos(this.angle) * skin.nose;
     const oy = this.y + Math.sin(this.angle) * skin.nose;
+    // Tiro triple: tres balas paralelas, desplazadas lateralmente
+    if (this.tripleShot > 0) {
+      const px = Math.cos(this.angle + Math.PI / 2);
+      const py = Math.sin(this.angle + Math.PI / 2);
+      return [
+        new Bullet(ox - px * TRIPLE_SPREAD, oy - py * TRIPLE_SPREAD, this.angle),
+        new Bullet(ox, oy, this.angle),
+        new Bullet(ox + px * TRIPLE_SPREAD, oy + py * TRIPLE_SPREAD, this.angle),
+      ];
+    }
     return [new Bullet(ox, oy, this.angle)];
   }
 
@@ -385,11 +394,11 @@ class Particle {
   }
 }
 
-// ── Power-up de velocidad ─────────────────────────────────────────────────────
+// ── Power-up de tiro triple ───────────────────────────────────────────────────
 const POWERUP_DROP = 0.12;  // probabilidad de soltar al destruir un asteroide
 const POWERUP_TTL  = 10;    // segundos en pantalla antes de desaparecer
-const SPEED_TIME   = 5;     // duración del efecto al recogerlo
-const SPEED_MULT   = 2;     // multiplicador de propulsión
+const TRIPLE_TIME  = 5;     // duración del efecto al recogerlo
+const TRIPLE_SPREAD = 7;    // separación lateral de las balas paralelas
 
 class PowerUp {
   constructor(x, y) {
@@ -419,17 +428,17 @@ class PowerUp {
     ctx.save();
     ctx.translate(this.x, this.y);
     ctx.scale(pulse, pulse);
-    ctx.strokeStyle = '#0ff';
+    ctx.strokeStyle = '#f0f';
     ctx.lineWidth   = 2;
-    ctx.lineJoin    = 'round';
-    // Doble chevron apuntando hacia arriba
+    ctx.lineCap     = 'round';
+    // Tres barras verticales: las balas del tiro triple
     ctx.beginPath();
-    ctx.moveTo(-8, 3);
-    ctx.lineTo(  0, -5);
-    ctx.lineTo( 8, 3);
-    ctx.moveTo(-8, 9);
-    ctx.lineTo(  0, 1);
-    ctx.lineTo( 8, 9);
+    ctx.moveTo(-7, -7);
+    ctx.lineTo(-7,  7);
+    ctx.moveTo( 0, -7);
+    ctx.lineTo( 0,  7);
+    ctx.moveTo( 7, -7);
+    ctx.lineTo( 7,  7);
     ctx.stroke();
     ctx.restore();
   }
@@ -558,7 +567,7 @@ function update(dt) {
         score += a.points;
         explode(a.x, a.y, a.size * 5);
         newAsteroids.push(...a.split());
-        // Posible soltar un power-up de velocidad (las fugaces no sueltan)
+        // Posible soltar un power-up de tiro triple (las fugaces no sueltan)
         if (!a.fugaz && Math.random() < POWERUP_DROP) powerUps.push(new PowerUp(a.x, a.y));
       }
     }
@@ -576,12 +585,12 @@ function update(dt) {
     }
   }
 
-  // Nave vs power-up de velocidad
+  // Nave vs power-up de tiro triple
   if (!ship.dead) {
     for (const p of powerUps) {
       if (!p.dead && dist(ship, p) < ship.radius + p.radius) {
         p.dead = true;
-        ship.speedBoost = SPEED_TIME;  // reinicia el temporizador, sin acumular
+        ship.tripleShot = TRIPLE_TIME;  // reinicia el temporizador, sin acumular
         explode(p.x, p.y, 6);
       }
     }
@@ -626,9 +635,9 @@ function drawHUD() {
   ctx.textAlign = 'left';
   ctx.fillText(`SCORE  ${score}`, 14, 26);
 
-  if (!ship.dead && ship.speedBoost > 0) {
-    ctx.fillStyle = '#0ff';
-    ctx.fillText(`VELOCIDAD ${Math.max(ship.speedBoost, 0).toFixed(1)}s`, 14, 48);
+  if (!ship.dead && ship.tripleShot > 0) {
+    ctx.fillStyle = '#f0f';
+    ctx.fillText(`TRIPLE ${Math.max(ship.tripleShot, 0).toFixed(1)}s`, 14, 48);
   }
 
   ctx.fillStyle = '#fff';
