@@ -46,5 +46,7 @@ Em seguida, acesse `http://localhost:3000`.
 * 4 skins de nave (silhueta e cor próprias, com chama do propulsor e ícones de vidas combinando): Clássica, Dardo, Caça e Cápsula — troque com a tecla `C`; a escolha fica salva no navegador (localStorage)
 * Asteroides se dividem em fragmentos menores ao serem destruídos
 * Partículas de explosão ao destruir asteroides
+* Power-up de velocidade: liberado aleatoriamente ao destruir asteroides; ao coletá-lo, a nave se move duas vezes mais rápido durante 5 segundos
 * Power-up de tiro triplo: liberado aleatoriamente ao destruir asteroides; ao coletá-lo, a nave dispara 3 projéteis paralelos durante 5 segundos
+* Power-up de escudo: liberado aleatoriamente ao destruir asteroides; ao coletá-lo, um anel verde envolve a nave durante 5 segundos e destrói asteroides ao toque (sem dividi-los nem pontuar)
 * Estrela cadente: asteroide especial amarelo, muito rápido, que entra periodicamente pelas bordas da tela e desaparece sozinho após alguns segundos; ao atingi-la, divide-se em duas estrelas menores e ainda mais rápidas — não vale pontos, é só perigo
