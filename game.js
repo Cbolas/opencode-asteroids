@@ -202,8 +202,9 @@ class ShootingStar extends Asteroid {
 
 // ── Skins de la nave ──────────────────────────────────────────────────────────
 // Cada skin define la silueta (verts, morro hacia +x), el color del trazo,
-// el anclaje de la llama (flameX/flameW) y la distancia del morro donde
-// nacen las balas (nose).
+// el anclaje de la llama (flameX/flameW), la distancia del morro donde
+// nacen las balas (nose), el radio de colisión (radius) y el multiplicador
+// de puntos que gana el jugador al pilotarla (scoreMult).
 const SKINS = [
   {
     name: 'CLÁSICA',
@@ -212,6 +213,8 @@ const SKINS = [
     nose: 21,
     flameX: -8,
     flameW: 4,
+    radius: 12,
+    scoreMult: 1,
     verts: [[20, 0], [-12, -9], [-7, 0], [-12, 9]],
   },
   {
@@ -221,6 +224,8 @@ const SKINS = [
     nose: 25,
     flameX: -5,
     flameW: 3,
+    radius: 12,
+    scoreMult: 1,
     verts: [[24, 0], [-10, -5], [-4, 0], [-10, 5]],
   },
   {
@@ -230,6 +235,8 @@ const SKINS = [
     nose: 19,
     flameX: -8,
     flameW: 3,
+    radius: 12,
+    scoreMult: 1,
     verts: [[18, 0], [0, -5], [-3, -13], [-11, -6], [-6, 0], [-11, 6], [-3, 13], [0, 5]],
   },
   {
@@ -239,9 +246,28 @@ const SKINS = [
     nose: 13,
     flameX: -11,
     flameW: 5,
+    radius: 12,
+    scoreMult: 1,
     verts: [[12, 0], [5, -8], [-8, -8], [-12, 0], [-8, 8], [5, 8]],
   },
+  {
+    // Gemela de la CLÁSICA al doble de tamaño: más blanco de colisión,
+    // pero puntúa el doble.
+    name: 'GIGANTE',
+    stroke: '#a855f7',
+    flame: 'rgba(192, 132, 252, 0.85)',
+    nose: 42,
+    flameX: -16,
+    flameW: 8,
+    radius: 24,
+    scoreMult: 2,
+    verts: [[40, 0], [-24, -18], [-14, 0], [-24, 18]],
+  },
 ];
+
+// Radio de colisión de referencia de las naves: la llama del propulsor y el
+// anillo de escudo escalan con el radio de la skin activa (doble en la GIGANTE).
+const BASE_RADIUS = 12;
 
 const SKIN_KEY = 'asteroids.skin';
 
@@ -273,7 +299,7 @@ class Ship {
     this.angle  = -Math.PI / 2;
     this.vx     = 0;
     this.vy     = 0;
-    this.radius = 12;
+    this.radius = SKINS[skinIndex].radius;
     this.thrusting     = false;
     this.invincible    = 3;
     this.shootCooldown = 0;
@@ -355,7 +381,7 @@ class Ship {
     if (this.thrusting && Math.random() > 0.35) {
       ctx.beginPath();
       ctx.moveTo(skin.flameX, -skin.flameW);
-      ctx.lineTo(skin.flameX - rand(6, 14), 0);
+      ctx.lineTo(skin.flameX - rand(6, 14) * this.radius / BASE_RADIUS, 0);
       ctx.lineTo(skin.flameX,  skin.flameW);
       // Llama cian mientras dura el power-up de velocidad
       ctx.strokeStyle = this.speedBoost > 0 ? 'rgba(0, 255, 255, 0.9)'
@@ -373,7 +399,7 @@ class Ship {
         ctx.strokeStyle = 'rgba(0, 255, 102, 0.9)';
         ctx.lineWidth   = 2;
         ctx.beginPath();
-        ctx.arc(this.x, this.y, SHIELD_RAD * pulse, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, SHIELD_RAD * this.radius / BASE_RADIUS * pulse, 0, Math.PI * 2);
         ctx.stroke();
       }
     }
@@ -572,6 +598,7 @@ function update(dt) {
   if (pressed('KeyC')) {
     skinIndex = (skinIndex + 1) % SKINS.length;
     saveSkin();
+    ship.radius = SKINS[skinIndex].radius;
     skinToast = 2;
   }
 
@@ -613,7 +640,8 @@ function update(dt) {
       if (!a.dead && !b.dead && dist(b, a) < a.radius) {
         b.dead = true;
         a.dead = true;
-        score += a.points;
+        // La skin GIGANTE puntúa el doble (scoreMult 2)
+        score += a.points * SKINS[skinIndex].scoreMult;
         explode(a.x, a.y, a.size * 5);
         newAsteroids.push(...a.split());
         // Posible soltar un power-up (velocidad, tiro triple o escudo); las fugaces no sueltan
@@ -631,7 +659,7 @@ function update(dt) {
   if (ship.shield > 0) {
     // El escudo destruye el asteroide al tocarlo, sin fragmentarlo ni puntuar
     for (const a of asteroids) {
-      if (!a.dead && dist(ship, a) < SHIELD_RAD + a.radius) {
+      if (!a.dead && dist(ship, a) < SHIELD_RAD * ship.radius / BASE_RADIUS + a.radius) {
         a.dead = true;
         explode(a.x, a.y, a.size * 5);
       }
@@ -697,7 +725,8 @@ function drawHUD() {
   ctx.font = '15px monospace';
 
   ctx.textAlign = 'left';
-  ctx.fillText(`SCORE  ${score}`, 14, 26);
+  // La skin activa puede multiplicar los puntos (GIGANTE = x2)
+  ctx.fillText(`SCORE  ${score}${SKINS[skinIndex].scoreMult > 1 ? '  x2' : ''}`, 14, 26);
 
   if (!ship.dead && ship.speedBoost > 0) {
     ctx.fillStyle = '#0ff';
